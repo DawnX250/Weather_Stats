@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Stats</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .weather-icon {
+            width: 80px;
+            height: 80px;
+            margin: 10px auto;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .icon-night { background-image: url("{{ url_for('static', filename='icons/night.gif') }}"); }
+        .icon-sunny { background-image: url("{{ url_for('static', filename='icons/sunny.gif') }}"); }
+        .icon-cloudy { background-image: url("{{ url_for('static', filename='icons/cloudy.gif') }}"); }
+        .icon-partly-cloudy { background-image: url("{{ url_for('static', filename='icons/partly_cloudy.gif') }}"); }
+        .icon-rain { background-image: url("{{ url_for('static', filename='icons/rain.gif') }}"); }
+        .icon-thunder { background-image: url("{{ url_for('static', filename='icons/thunder.gif') }}"); }
+        .icon-snow { background-image: url("{{ url_for('static', filename='icons/snow.gif') }}"); }
+        .icon-mist { background-image: url("{{ url_for('static', filename='icons/mist.gif') }}"); }
+        .icon-default { background-image: url("{{ url_for('static', filename='icons/partly_cloudy.gif') }}"); }
+
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: cover;
+            z-index: -2;
+        }
+
+        .overlay {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <video autoplay muted loop playsinline id="bg-video">
+        <source src="{{ url_for('static', filename='videos/' + bg_video) }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="loader hidden" id="loader"></div>
+
+    <div class="overlay">
+        <div class="container">
+
+            <h1>Weather Stats</h1>
+
+            <form id="search-form" method="POST">
+                <input type="text" id="city-input" name="city" placeholder="Enter city name" required>
+                <button type="submit">Search</button>
+            </form>
+
+            {% if error %}
+                <p style="color:red;">{{ error }}</p>
+            {% endif %}
+
+            {% if weather %}
+
+            <div class="row">
+
+                <div id="left-box" class="glass-box">
+                    <h2 style="font-size: 14px;">{{ weather.location }}</h2>
+                    <p style="font-size: 40px;">{{ weather.temp }}°C</p>
+
+                    <div class="weather-icon icon-{{ weather.icon | default('default') }}"></div>
+
+                    <p style="font-size: 20px;">{{ weather.condition }}</p>
+                    <p style="font-size: 15px;">Feels like {{ weather.feels }}°C</p>
+                </div>
+
+                <div id="right-box" class="glass-box">
+                    <p>Humidity: {{ weather.humidity }}%</p>
+                    <p>Cloud Cover: {{ weather.cloud }}%</p>
+                    <p>Pressure: {{ weather.pressure }} mb</p>
+                    <p>Visibility: {{ weather.visibility }} km</p>
+                    <p>Wind: {{ weather.wind }} kph</p>
+                    <p>UV Index: {{ weather.uv }}</p>
+
+                    {% if weather.forecast and weather.forecast|length > 0 %}
+                        <p>Sunrise: {{ weather.forecast[0].sunrise }}</p>
+                        <p>Sunset: {{ weather.forecast[0].sunset }}</p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <div class="aqi-box glass-box" style="margin-top: 20px;">
+                <h2 style="font-size: 20px;">AQI Report</h2>
+                <p>{{ weather.aqi }}</p>
+            </div>
+
+            <div class="forecast-row">
+                {% for day in weather.forecast %}
+                <div class="forecast-box glass-box">
+                    <h3>{{ day.date }}</h3>
+                    <p>Avg: {{ day.avg }}°C</p>
+                    <p>Min: {{ day.min }}°C | Max: {{ day.max }}°C</p>
+                    <p>Humidity: {{ day.humidity }}%</p>
+                    <p>Rain Chance: {{ day.rain }}%</p>
+                    <p>Sunrise: {{ day.sunrise }} | Sunset: {{ day.sunset }}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('search-form');
+        const loader = document.getElementById('loader');
+
+        if (form && loader) {
+            form.addEventListener('submit', () => {
+                loader.classList.remove('hidden');
+            });
+        }
+    </script>
+
+</body>
+</html>
